@@ -11,14 +11,18 @@
 <div class="flex h-screen">
     <!-- Left Panel: List of Requests -->
     <div class="w-1/3 border-r border-gray-300 overflow-y-auto" id="requestList">
-        <div class="p-4 font-bold text-xl">Requests</div>
+        <div class="p-4 flex justify-between items-center">
+            <span class="font-bold text-xl">Requests</span>
+            <button class="px-3 py-1 bg-red-500 text-white rounded text-xs" onclick="clearRequests()">Clear All</button>
+        </div>
 
         <!-- Table Header -->
-        <div class="grid grid-cols-4 font-bold bg-gray-200 p-2 border-b border-gray-300">
-            <span>Status</span>
-            <span>Method</span>
-            <span>URL</span>
-            <span>Duration</span>
+        <div class="flex items-center bg-gray-200 p-2 border-b border-gray-300 text-sm font-bold">
+            <div class="w-16 text-center">Status</div>
+            <div class="w-20 text-center">Method</div>
+            <div class="flex-grow text-left">URL</div>
+            <div class="w-20 text-center">Duration</div>
+            <div class="w-10"></div> <!-- Empty space for remove button -->
         </div>
 
         <ul id="requests" class="divide-y divide-gray-200"></ul>
@@ -162,29 +166,42 @@
     function addRequestToList(data) {
         const statusClass = getStatusClass(data.response.status);
         const li = document.createElement('li');
-        li.className = "grid grid-cols-4 p-2 cursor-pointer hover:bg-gray-200 items-center";
+        li.className = "flex items-center p-2 cursor-pointer hover:bg-gray-200";
 
         li.innerHTML = `
-        <div class="flex justify-center items-center h-full">
-            <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">
-                ${data.response.status || 'N/A'}
-            </span>
-        </div>
-        <span class="font-medium">${data.request.method || 'GET'}</span>
-        <span class="truncate">${data.endpoint || data.url}</span>
-        <span class="text-gray-500">${data.latency || 'N/A'}ms</span>
-    `;
+            <div class="w-16 flex justify-center">
+                <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                    ${data.response.status || 'N/A'}
+                </span>
+            </div>
+            <div class="w-20 text-center font-medium">${data.request.method || 'GET'}</div>
+            <div class="flex-grow truncate text-left">${data.endpoint || data.url}</div>
+            <div class="w-20 text-gray-500 text-center">${data.latency || 'N/A'}ms</div>
+            <button class="w-8 h-8 flex items-center justify-center text-red-500 hover:text-red-700" onclick="removeRequest(event, this)">
+                ✕
+            </button>
+        `;
 
-        li.onclick = function () {
-            selectedRequest = data;
-            renderDetail();
+        li.onclick = function (event) {
+            if (!event.target.closest("button")) { // Prevents request removal from triggering detail rendering
+                selectedRequest = data;
+                renderDetail();
+            }
         };
 
         // Add the new request at the top of the list
         requestsList.prepend(li);
     }
 
-    // Helper function to get status class based on HTTP code (Flat Pill Styling)
+    function removeRequest(event, button) {
+        event.stopPropagation(); // Prevents triggering request details
+        button.parentElement.remove();
+    }
+
+    function clearRequests() {
+        requestsList.innerHTML = "";
+    }
+
     function getStatusClass(status) {
         if (status >= 200 && status < 300) return "bg-green-200 text-green-800";   // Success
         if (status >= 300 && status < 400) return "bg-blue-200 text-blue-800";     // Redirection
