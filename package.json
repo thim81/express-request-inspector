@@ -1,10 +1,10 @@
 {
   "name": "express-request-inspector",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Express middleware to capture and inspect HTTP requests/responses with a built-in Inspector UI.",
   "main": "lib/inspector.js",
   "bin": {
-    "express-inspector": "./bin/app.js"
+    "express-inspector": "bin/app.js"
   },
   "scripts": {
     "start": "node bin/app.js",
