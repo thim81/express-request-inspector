@@ -12,7 +12,7 @@
     <!-- Left Panel: List of Requests -->
     <div class="w-1/3 border-r border-gray-300 overflow-y-auto" id="requestList">
         <div class="p-4 flex justify-between items-center">
-            <span class="font-bold text-xl">Requests</span>
+            <span id="requestTitle" class="font-bold text-xl">Requests</span>
             <button class="px-3 py-1 bg-red-500 text-white rounded text-xs" onclick="clearRequests()">Clear All</button>
         </div>
 
@@ -192,7 +192,7 @@
                 </div>
                 <div class="w-20 text-center font-medium">${data.request.method || 'GET'}</div>
                 <div class="flex-grow truncate text-left">${data.endpoint || data.url}</div>
-                <div class="w-20 text-gray-500 text-center">${data.latency || 'N/A'}ms</div>
+                <div class="w-20 text-gray-500 text-center">${data.latency}ms</div>
                 <button class="w-8 h-8 flex items-center justify-center text-red-500 hover:text-red-700" onclick="removeRequest(event, this)">
                     ✕
                 </button>
@@ -201,7 +201,7 @@
 
         li.onclick = function (event) {
             if (!event.target.closest("button")) {
-                const selectedClass = ["bg-blue-100", "border-l-4", "border-blue-700", "py-2", "pl-1"]
+                const selectedClass = ["bg-blue-100", "border-l-4", "border-blue-700", "py-2", "pl-1"];
                 // Remove highlight from previously selected item.
                 if (selectedLi) {
                     selectedLi.querySelector('.selected-container').classList.remove(...selectedClass);
@@ -216,10 +216,16 @@
 
         // Add the new request at the top of the list
         requestsList.prepend(li);
+        updateRequestCount();
         // Auto-select the first item if none is selected.
         if (!selectedRequest) {
             li.click();
         }
+    }
+
+    function updateRequestCount() {
+        const count = requestsList.querySelectorAll('li').length;
+        document.getElementById('requestTitle').textContent = `Requests (${count})`;
     }
 
     function removeRequest(event, button) {
@@ -281,7 +287,7 @@
             requestBodyCount = Object.keys(requestBody).length;
         } else if (requestBody && typeof requestBody === 'string') {
             const trimmed = requestBody.trim();
-            requestBodyCount = trimmed !== '' && trimmed !== '{}'? 1 : 0;
+            requestBodyCount = trimmed !== '' && trimmed !== '{}' ? 1 : 0;
         }
         // document.getElementById('btnRequestBody').textContent = `Request Body (${requestBodyCount})`;
         // If there’s no request body content, collapse its editor.
@@ -308,11 +314,19 @@
             editor = null;
         }
 
+        // Try to parse the content as JSON. If it fails, use it as plain text.
+        let formattedContent;
+        try {
+            const parsed = JSON.parse(content);
+            formattedContent = JSON.stringify(parsed, null, 2);
+        } catch (e) {
+            formattedContent = content;
+        }
+
         require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs'}});
         require(["vs/editor/editor.main"], function () {
             editor = monaco.editor.create(document.getElementById(target), {
-                value: JSON.stringify(JSON.parse(content), null, 2),
-                // value: content,
+                value: formattedContent,
                 language: "json",
                 readOnly: true,
                 theme: "vs-light",
