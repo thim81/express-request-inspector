@@ -61,12 +61,12 @@
                 <button id="btnQueryParams" class="w-full p-2 text-left font-bold bg-gray-200"
                         onclick="toggleSection('queryParams')">Query Parameters
                 </button>
-                <div id="queryParams" class="p-2 hidden">
+                <div id="queryParams" class="p-0 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
                         <tr class="bg-gray-100">
-                            <th class="border p-2">Key</th>
-                            <th class="border p-2">Value</th>
+                            <th class="border px-2 py-1 w-[25%] text-left">Key</th>
+                            <th class="border px-2 py-1 text-left">Value</th>
                         </tr>
                         </thead>
                         <tbody id="queryParamsContent"></tbody>
@@ -79,12 +79,12 @@
                 <button id="btnRequestHeaders" class="w-full p-2 text-left font-bold bg-gray-200"
                         onclick="toggleSection('requestHeaders')">Headers
                 </button>
-                <div id="requestHeaders" class="p-2 hidden">
+                <div id="requestHeaders" class="p-0 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
                         <tr class="bg-gray-100">
-                            <th class="border p-2">Header</th>
-                            <th class="border p-2">Value</th>
+                            <th class="border px-2 py-1 w-[25%] text-left">Header</th>
+                            <th class="border px-2 py-1 text-left">Value</th>
                         </tr>
                         </thead>
                         <tbody id="requestHeadersContent"></tbody>
@@ -107,12 +107,12 @@
                 <button id="btnResponseHeaders" class="w-full p-2 text-left font-bold bg-gray-200"
                         onclick="toggleSection('responseHeaders')">Headers
                 </button>
-                <div id="responseHeaders" class="p-2 hidden">
+                <div id="responseHeaders" class="p-0 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
                         <tr class="bg-gray-100">
-                            <th class="border p-2">Header</th>
-                            <th class="border p-2">Value</th>
+                            <th class="border px-2 py-1 w-[25%] text-left">Header</th>
+                            <th class="border px-2 py-1 text-left">Value</th>
                         </tr>
                         </thead>
                         <tbody id="responseHeadersContent"></tbody>
@@ -318,7 +318,7 @@
         const table = document.getElementById(tableId);
         table.innerHTML = "";
         Object.entries(data || {}).forEach(([key, value]) => {
-            table.innerHTML += `<tr><td class="border p-2">${key}</td><td class="border p-2">${value}</td></tr>`;
+            table.innerHTML += `<tr><td class="border px-2 py-1 font-mono text-slate-500 text-xs">${key}</td><td class="border px-2 py-1 font-mono text-xs">${value}</td></tr>`;
         });
     }
 
