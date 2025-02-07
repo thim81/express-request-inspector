@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Express Request/Response Inspector</title>
-    <!-- Use the Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
 </head>
 <body class="bg-gray-100">
 <div class="flex h-screen">
@@ -22,7 +22,7 @@
             <div class="w-20 text-center">Method</div>
             <div class="flex-grow text-left">URL</div>
             <div class="w-20 text-center">Duration</div>
-            <div class="w-10"></div> <!-- Empty space for remove button -->
+            <div class="w-10"></div>
         </div>
 
         <ul id="requests" class="divide-y divide-gray-200"></ul>
@@ -37,7 +37,7 @@
                 <div class="flex items-center space-x-2 font-mono text-lg">
                     <span id="reqMethod" class="font-bold"></span>
                     <span id="reqEndpoint" class="text-blue-600"></span>
-                    <span id="reqStatus" class="text-green-600"></span>
+                    <span id="reqStatus" class="inline-flex px-3 py-1 text-xs font-semibold rounded-full"></span>
                 </div>
                 <div class="text-gray-600" id="reqFullUrl"></div>
                 <div class="text-gray-500" id="reqTimestamp"></div>
@@ -83,8 +83,9 @@
             </div>
 
             <div>
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('requestBody')">Request Body</button>
-                <pre id="requestBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>
+                <button class="w-full p-2 text-left font-bold bg-gray-200">Request Body</button>
+<!--                <pre id="requestBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>-->
+                <div id="editorContainerRequest" class="bg-white rounded-b shadow p-0 h-96"></div>
             </div>
         </div>
 
@@ -106,8 +107,9 @@
             </div>
 
             <div>
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('responseBody')">Response Body</button>
-                <pre id="responseBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>
+                <button class="w-full p-2 text-left font-bold bg-gray-200">Response Body</button>
+<!--                <pre id="responseBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>-->
+                <div id="editorContainerResponse" class="bg-white rounded-b shadow p-0 h-96"></div>
             </div>
         </div>
     </div>
@@ -123,6 +125,7 @@
     let allRequests = [];
     let selectedRequest = null;
     let currentTab = 'request';
+    let editor;
 
     function connectWebSocket() {
         if (retryCount >= maxRetries) {
@@ -183,7 +186,7 @@
         `;
 
         li.onclick = function (event) {
-            if (!event.target.closest("button")) { // Prevents request removal from triggering detail rendering
+            if (!event.target.closest("button")) {
                 selectedRequest = data;
                 renderDetail();
             }
@@ -222,14 +225,44 @@
 
         populateTable('queryParamsContent', selectedRequest.request.queryParams);
         populateTable('requestHeadersContent', selectedRequest.request.headers);
-        document.getElementById('requestBody').textContent = JSON.stringify(selectedRequest.request.body || {}, null, 2);
+        // document.getElementById('requestBody').textContent = JSON.stringify(selectedRequest.request.body || {}, null, 2);
 
         populateTable('responseHeadersContent', selectedRequest.response.headers);
-        document.getElementById('responseBody').textContent = JSON.stringify(JSON.parse(selectedRequest.response.payload || "{}"), null, 2);
+        // document.getElementById('responseBody').textContent = JSON.stringify(JSON.parse(selectedRequest.response.payload || "{}"), null, 2);
 
         if (currentTab === 'response') {
-            expandResponseBody()
+            // expandResponseBody()
         }
+
+        updateEditor();
+    }
+
+    function updateEditor() {
+        const content = currentTab === 'request'
+            ? selectedRequest.request.body || '{}'
+            : selectedRequest.response.payload || '{}';
+
+        const target = currentTab === 'request' ? 'editorContainerRequest' : 'editorContainerResponse';
+
+        // Dispose the previous editor if it exists
+        if (editor) {
+            editor.dispose();
+            editor = null;
+        }
+
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs' } });
+        require(["vs/editor/editor.main"], function () {
+            editor = monaco.editor.create(document.getElementById(target), {
+                value: JSON.stringify(JSON.parse(content), null, 2),
+                // value: content,
+                language: "json",
+                readOnly: true,
+                theme: "vs-light",
+                autoIndent: true,
+                minimap: { enabled: false },
+                automaticLayout: true
+            });
+        });
     }
 
     function populateTable(tableId, data) {
@@ -264,8 +297,10 @@
 
         currentTab = tab;
         if (tab === 'response') {
-            expandResponseBody()
+            // expandResponseBody()
         }
+
+        updateEditor();
     }
 </script>
 </body>
