@@ -224,7 +224,12 @@
 
     function removeRequest(event, button) {
         event.stopPropagation();
-        button.parentElement.remove();
+        const li = button.closest("li");
+        if (selectedLi === li) {
+            selectedRequest = null;
+            selectedLi = null;
+        }
+        li.remove();
     }
 
     function clearRequests() {
