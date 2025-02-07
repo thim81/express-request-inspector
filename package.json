@@ -1,7 +1,7 @@
 {
   "name": "express-request-inspector",
   "version": "1.0.0",
-  "description": "Express middleware to capture and inspect HTTP requests/responses with a built-in Inspector UI (port 4004).",
+  "description": "Express middleware to capture and inspect HTTP requests/responses with a built-in Inspector UI.",
   "main": "lib/inspector.js",
   "bin": {
     "express-inspector-ui": "./bin/app.js"

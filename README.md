@@ -5,9 +5,8 @@
 ## Features
 
 - **Middleware**: Intercepts HTTP requests and responses.
-- **Real-time UI**: Uses WebSockets to broadcast data to an inspector UI.
-- **Built-in Inspector Server**: The UI is served on port 4004.
-- **Configurable Options**: Choose whether to log request data to the console, broadcast it via WebSockets, or both.
+- **Real-time Inspector**: Inspect Express Requests & Response in an inspector UI.
+- **Log Requests**: Log request data to the console.
 - **Easy Integration**: Simply add the middleware to your Express app.
 
 ## Installation
@@ -15,7 +14,7 @@
 Install the package via npm:
 
 ```bash
-npm install express-request-response-inspector
+npm install express-request-inspector
 ```
 
 ## Usage
