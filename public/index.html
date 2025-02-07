@@ -236,10 +236,13 @@
             selectedLi = null;
         }
         li.remove();
+        const count = requestsList.querySelectorAll('li').length;
+        document.getElementById('requestTitle').textContent = `Requests (${count})`;
     }
 
     function clearRequests() {
         requestsList.innerHTML = "";
+        document.getElementById('requestTitle').textContent = `Requests`;
     }
 
     function getStatusClass(status) {
