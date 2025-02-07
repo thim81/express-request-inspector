@@ -40,7 +40,7 @@
                     <span id="reqStatus" class="inline-flex px-3 py-1 text-xs font-semibold rounded-full"></span>
                 </div>
                 <div class="text-gray-600" id="reqFullUrl"></div>
-                <div class="text-gray-500" id="reqTimestamp"></div>
+                <div class="text-gray-500 text-xs" id="reqTimestamp"></div>
             </div>
         </div>
 
@@ -184,7 +184,7 @@
         li.className = "flex items-center cursor-pointer hover:bg-gray-200 ";
 
         li.innerHTML = `
-            <div class="flex items-center p-2 selected-container">
+            <div class="flex items-center p-2 selected-container w-full">
                 <div class="w-16 flex justify-center">
                     <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">
                         ${data.response.status || 'N/A'}
@@ -201,7 +201,7 @@
 
         li.onclick = function (event) {
             if (!event.target.closest("button")) {
-                const selectedClass = ["bg-blue-100", "border-l-4", "border-blue-700"]
+                const selectedClass = ["bg-blue-100", "border-l-4", "border-blue-700", "py-2", "pl-1"]
                 // Remove highlight from previously selected item.
                 if (selectedLi) {
                     selectedLi.querySelector('.selected-container').classList.remove(...selectedClass);
