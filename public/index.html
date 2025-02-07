@@ -12,6 +12,15 @@
     <!-- Left Panel: List of Requests -->
     <div class="w-1/3 border-r border-gray-300 overflow-y-auto" id="requestList">
         <div class="p-4 font-bold text-xl">Requests</div>
+
+        <!-- Table Header -->
+        <div class="grid grid-cols-4 font-bold bg-gray-200 p-2 border-b border-gray-300">
+            <span>Status</span>
+            <span>Method</span>
+            <span>URL</span>
+            <span>Duration</span>
+        </div>
+
         <ul id="requests" class="divide-y divide-gray-200"></ul>
     </div>
 
@@ -140,19 +149,7 @@
             try {
                 let messageData = typeof event.data === 'string' ? event.data : new TextDecoder('utf-8').decode(new Uint8Array(event.data));
                 const data = JSON.parse(messageData);
-                // console.log("Received data from WS server:", data);
-                allRequests.push(data);
-                const li = document.createElement('li');
-                li.className = "p-2 cursor-pointer hover:bg-gray-200 flex justify-between";
-                li.innerHTML = `<span class="font-bold">${data.response.status || 'N/A'}</span>
-                                <span>${data.request.method || 'GET'}</span>
-                                <span>${data.endpoint || data.url}</span>
-                                <span>${data.latency || 'N/A'}ms</span>`;
-                li.onclick = function () {
-                    selectedRequest = data;
-                    renderDetail();
-                };
-                requestsList.appendChild(li);
+                addRequestToList(data);
             } catch (e) {
                 console.error("Error parsing received message:", e);
             }
@@ -162,6 +159,40 @@
     // Initial connection
     connectWebSocket();
 
+    function addRequestToList(data) {
+        const statusClass = getStatusClass(data.response.status);
+        const li = document.createElement('li');
+        li.className = "grid grid-cols-4 p-2 cursor-pointer hover:bg-gray-200 items-center";
+
+        li.innerHTML = `
+        <div class="flex justify-center items-center h-full">
+            <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                ${data.response.status || 'N/A'}
+            </span>
+        </div>
+        <span class="font-medium">${data.request.method || 'GET'}</span>
+        <span class="truncate">${data.endpoint || data.url}</span>
+        <span class="text-gray-500">${data.latency || 'N/A'}ms</span>
+    `;
+
+        li.onclick = function () {
+            selectedRequest = data;
+            renderDetail();
+        };
+
+        // Add the new request at the top of the list
+        requestsList.prepend(li);
+    }
+
+    // Helper function to get status class based on HTTP code (Flat Pill Styling)
+    function getStatusClass(status) {
+        if (status >= 200 && status < 300) return "bg-green-200 text-green-800";   // Success
+        if (status >= 300 && status < 400) return "bg-blue-200 text-blue-800";     // Redirection
+        if (status >= 400 && status < 500) return "bg-yellow-200 text-yellow-800"; // Client Error
+        if (status >= 500) return "bg-red-200 text-red-800";                       // Server Error
+        return "bg-gray-200 text-gray-800"; // Default for unknown status
+    }
+
     // Render the details in the right panel based on the selected tab.
     function renderDetail() {
         if (!selectedRequest) return;
@@ -170,7 +201,7 @@
         document.getElementById('reqEndpoint').textContent = selectedRequest.endpoint;
         document.getElementById('reqStatus').textContent = `${selectedRequest.response.status} OK`;
         document.getElementById('reqFullUrl').textContent = selectedRequest.url;
-        document.getElementById('reqTimestamp').textContent = `Received on ${new Date().toISOString()} • Took ${selectedRequest.latency}ms to resolve`;
+        document.getElementById('reqTimestamp').textContent = `Received on ${selectedRequest.timestamp} • Took ${selectedRequest.latency}ms to resolve`;
 
         populateTable('queryParamsContent', selectedRequest.request.queryParams);
         populateTable('requestHeadersContent', selectedRequest.request.headers);
@@ -178,6 +209,10 @@
 
         populateTable('responseHeadersContent', selectedRequest.response.headers);
         document.getElementById('responseBody').textContent = JSON.stringify(JSON.parse(selectedRequest.response.payload || "{}"), null, 2);
+
+        if (currentTab === 'response') {
+            expandResponseBody()
+        }
     }
 
     function populateTable(tableId, data) {
@@ -190,6 +225,10 @@
 
     function toggleSection(sectionId) {
         document.getElementById(sectionId).classList.toggle('hidden');
+    }
+
+    function expandResponseBody() {
+        document.getElementById('responseBody').classList.remove('hidden');
     }
 
     function showTab(tab) {
@@ -205,6 +244,11 @@
         document.getElementById('tabResponse').classList.toggle('text-white', tab === 'response');
         document.getElementById('tabRequest').classList.toggle('bg-gray-200', tab === 'response');
         document.getElementById('tabRequest').classList.toggle('text-gray-700', tab === 'response');
+
+        currentTab = tab;
+        if (tab === 'response') {
+            expandResponseBody()
+        }
     }
 </script>
 </body>
