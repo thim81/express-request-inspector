@@ -181,20 +181,22 @@
     function addRequestToList(data) {
         const statusClass = getStatusClass(data.response.status);
         const li = document.createElement('li');
-        li.className = "flex items-center p-2 cursor-pointer hover:bg-gray-200 ";
+        li.className = "flex items-center cursor-pointer hover:bg-gray-200 ";
 
         li.innerHTML = `
-            <div class="w-16 flex justify-center">
-                <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">
-                    ${data.response.status || 'N/A'}
-                </span>
+            <div class="flex items-center p-2 selected-container">
+                <div class="w-16 flex justify-center">
+                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                        ${data.response.status || 'N/A'}
+                    </span>
+                </div>
+                <div class="w-20 text-center font-medium">${data.request.method || 'GET'}</div>
+                <div class="flex-grow truncate text-left">${data.endpoint || data.url}</div>
+                <div class="w-20 text-gray-500 text-center">${data.latency || 'N/A'}ms</div>
+                <button class="w-8 h-8 flex items-center justify-center text-red-500 hover:text-red-700" onclick="removeRequest(event, this)">
+                    ✕
+                </button>
             </div>
-            <div class="w-20 text-center font-medium">${data.request.method || 'GET'}</div>
-            <div class="flex-grow truncate text-left">${data.endpoint || data.url}</div>
-            <div class="w-20 text-gray-500 text-center">${data.latency || 'N/A'}ms</div>
-            <button class="w-8 h-8 flex items-center justify-center text-red-500 hover:text-red-700" onclick="removeRequest(event, this)">
-                ✕
-            </button>
         `;
 
         li.onclick = function (event) {
@@ -202,11 +204,11 @@
                 const selectedClass = ["bg-blue-100", "border-l-4", "border-blue-700"]
                 // Remove highlight from previously selected item.
                 if (selectedLi) {
-                    selectedLi.classList.remove(...selectedClass);
+                    selectedLi.querySelector('.selected-container').classList.remove(...selectedClass);
                 }
                 // Highlight the current item.
                 selectedLi = li;
-                li.classList.add(...selectedClass);
+                li.querySelector('.selected-container').classList.add(...selectedClass);
                 selectedRequest = data;
                 renderDetail();
             }
