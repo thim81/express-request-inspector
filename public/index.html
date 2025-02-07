@@ -45,9 +45,9 @@
         </div>
 
         <!-- Tabs for Request and Response -->
-        <div class="mb-4 flex space-x-2">
-            <button id="tabRequest" class="px-4 py-2 bg-blue-500 text-white rounded-t" onclick="showTab('request')">
-                Request
+        <div class="flex space-x-2">
+            <button id="tabRequest" class="px-4 py-2 bg-blue-600 text-white rounded-t"
+                    onclick="showTab('request')">Request
             </button>
             <button id="tabResponse" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t"
                     onclick="showTab('response')">Response
@@ -136,7 +136,6 @@
     const maxRetries = 10;
     const reconnectInterval = 5000; // 5 seconds
     const requestsList = document.getElementById('requests');
-    const detailText = document.getElementById('detailText');
     let selectedRequest = null;
     let selectedLi = null;
     let currentTab = 'request';
@@ -182,7 +181,7 @@
     function addRequestToList(data) {
         const statusClass = getStatusClass(data.response.status);
         const li = document.createElement('li');
-        li.className = "flex items-center p-2 cursor-pointer hover:bg-gray-200";
+        li.className = "flex items-center p-2 cursor-pointer hover:bg-gray-200 ";
 
         li.innerHTML = `
             <div class="w-16 flex justify-center">
@@ -200,13 +199,14 @@
 
         li.onclick = function (event) {
             if (!event.target.closest("button")) {
+                const selectedClass = ["bg-blue-100", "border-l-4", "border-blue-700"]
                 // Remove highlight from previously selected item.
                 if (selectedLi) {
-                    selectedLi.classList.remove("bg-blue-100");
+                    selectedLi.classList.remove(...selectedClass);
                 }
                 // Highlight the current item.
                 selectedLi = li;
-                li.classList.add("bg-blue-100");
+                li.classList.add(...selectedClass);
                 selectedRequest = data;
                 renderDetail();
             }
@@ -232,8 +232,8 @@
     function getStatusClass(status) {
         if (status >= 200 && status < 300) return "bg-green-200 text-green-800";   // Success
         if (status >= 300 && status < 400) return "bg-blue-200 text-blue-800";     // Redirection
-        if (status >= 400 && status < 500) return "bg-yellow-200 text-yellow-800"; // Client Error
-        if (status >= 500) return "bg-red-200 text-red-800";                       // Server Error
+        if (status >= 400 && status < 500) return "bg-orange-600 text-orange-200"; // Client Error
+        if (status >= 500) return "bg-red-800 text-red-200";                       // Server Error
         return "bg-gray-200 text-gray-800"; // Default for unknown status
     }
 
@@ -243,7 +243,10 @@
 
         document.getElementById('reqMethod').textContent = selectedRequest.request.method;
         document.getElementById('reqEndpoint').textContent = selectedRequest.endpoint;
-        document.getElementById('reqStatus').textContent = `${selectedRequest.response.status}`;
+        const status = selectedRequest.response.status;
+        const pill = document.getElementById('reqStatus');
+        pill.textContent = `${status}`;
+        pill.className = "inline-flex px-3 py-1 text-xs font-semibold rounded-full " + getStatusClass(status);
         document.getElementById('reqFullUrl').textContent = selectedRequest.url;
         document.getElementById('reqTimestamp').textContent = `Received on ${selectedRequest.timestamp} • Took ${selectedRequest.latency}ms to resolve`;
 
@@ -266,12 +269,11 @@
 
         // Check the Request Body.
         let requestBody = selectedRequest.request.payload;
-        console.log('requestBody', requestBody);
         let requestBodyCount = 0;
         if (requestBody && typeof requestBody === 'object') {
             requestBodyCount = Object.keys(requestBody).length;
         } else if (requestBody && typeof requestBody === 'string') {
-            const trimmed = requestBody.trim()
+            const trimmed = requestBody.trim();
             requestBodyCount = trimmed !== '' && trimmed !== '{}'? 1 : 0;
         }
         // document.getElementById('btnRequestBody').textContent = `Request Body (${requestBodyCount})`;
@@ -334,12 +336,12 @@
         document.getElementById('requestContent').classList.toggle('hidden', tab !== 'request');
         document.getElementById('responseContent').classList.toggle('hidden', tab !== 'response');
 
-        document.getElementById('tabRequest').classList.toggle('bg-blue-500', tab === 'request');
+        document.getElementById('tabRequest').classList.toggle('bg-blue-600', tab === 'request');
         document.getElementById('tabRequest').classList.toggle('text-white', tab === 'request');
         document.getElementById('tabResponse').classList.toggle('bg-gray-200', tab === 'request');
         document.getElementById('tabResponse').classList.toggle('text-gray-700', tab === 'request');
 
-        document.getElementById('tabResponse').classList.toggle('bg-blue-500', tab === 'response');
+        document.getElementById('tabResponse').classList.toggle('bg-blue-600', tab === 'response');
         document.getElementById('tabResponse').classList.toggle('text-white', tab === 'response');
         document.getElementById('tabRequest').classList.toggle('bg-gray-200', tab === 'response');
         document.getElementById('tabRequest').classList.toggle('text-gray-700', tab === 'response');
