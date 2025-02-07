@@ -9,9 +9,10 @@ const app = express();
 
 // Use Inspector middleware for all routes.
 app.use((req, res, next) => {
-    inspector.capture(req, res, next)
+    inspector.capture(req, res, next, { broadcast: true, print: true })
         .then(data => {
-            // console.log('Captured:', data);
+            // Log inspector object
+            console.log('Captured:', data);
         })
         .catch(err => {
             console.error('Capture error:', err);

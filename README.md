@@ -7,6 +7,7 @@
 - **Middleware**: Intercepts HTTP requests and responses.
 - **Real-time UI**: Uses WebSockets to broadcast data to an inspector UI.
 - **Built-in Inspector Server**: The UI is served on port 4004.
+- **Configurable Options**: Choose whether to log request data to the console, broadcast it via WebSockets, or both.
 - **Easy Integration**: Simply add the middleware to your Express app.
 
 ## Installation
@@ -20,61 +21,92 @@ npm install express-request-response-inspector
 ## Usage
 
 1. Integrate the Inspector Middleware into Your Express Application
-   In your Express application, require the package and use the middleware. For example:
 
-    ```js
-    // app.js
-    const express = require('express');
-    const inspector = require('express-request-inspector').capture;
-    
-    const app = express();
-    
-    // Add the inspector middleware BEFORE your routes
-    app.use((req, res, next) => {
-        inspector(req, res, next)
-            .then(data => {
-                // Optionally, process the captured data (e.g., log it)
-                console.log('Captured data:', data);
-        })
-        .catch(err => {
-            console.error('Inspector error:', err);
-            next(err);
-        });
-    });
-    
-    // Define your routes
-    app.get('/', (req, res) => {
-        res.send('Hello, world!');
-    });
-    
-    // Start your Express server as usual
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`Express app listening on port ${PORT}`);
-    });
-    ```
+In your Express application, require the package and use the middleware. For example:
 
-2. Run the Inspector UI
-   The Inspector UI is provided as a separate command-line tool that serves the UI on port 4004. Once your app is running (and using the middleware), you can start the Inspector UI in another terminal:
+ ```js
+ // app.js
+ const express = require('express');
+ const inspector = require('express-request-inspector').capture;
+ 
+ const app = express();
+ 
+ // Add the inspector middleware BEFORE your routes
+ app.use((req, res, next) => {
+     inspector(req, res, next, { broadcast: true, print: true })
+         .then(data => {
+             // Optionally, process the captured data (e.g., log it)
+             console.log('Captured data:', data);
+     })
+     .catch(err => {
+         console.error('Inspector error:', err);
+         next(err);
+     });
+ });
+ 
+ // Define your routes
+ app.get('/', (req, res) => {
+     res.send('Hello, world!');
+ });
+ 
+ // Start your Express server as usual
+ const PORT = process.env.PORT || 3000;
+ app.listen(PORT, () => {
+     console.log(`Express app listening on port ${PORT}`);
+ });
+ ```
 
-   If you installed the package locally:
-    
-   ```bash
-    npx express-request-inspector
-   ```
-   
-   Or, if installed globally:
-    
-   ```bash
-    express-request-inspector
-   ```
-   
-   or as package.json script
+2. Configuration Options
 
-   ```bash
-   "scripts": {
-    "inspector": "express-request-inspector"
-   }
-   ```
-   
-   Then open your browser to http://localhost:4004 to view the inspector interface.
+The capture() function accepts an optional configuration object to control how request and response data is handled:
+
+| Option      | Type    | Default | Description                                                                                      |
+|:------------|:--------|:--------|:-------------------------------------------------------------------------------------------------|
+| `broadcast` | boolean | `true`  | If true, sends request/response data to the WebSocket for real-time viewing in the Inspector UI. |
+| `print`     | boolean | `true`  | If true, logs request/response details to the console in a structured format.                    |
+
+
+Examples
+Enable only console logging (disable WebSocket broadcasting):
+```js
+app.use((req, res, next) => {
+ inspector.capture(req, res, next, { broadcast: false, print: true });
+});
+```
+Enable only WebSocket broadcasting (disable console logging):
+```js
+app.use((req, res, next) => {
+ inspector.capture(req, res, next, { broadcast: true, print: false });
+});
+```
+
+Use default behavior (both enabled):
+```js
+app.use(inspector.capture);
+```
+
+3. Run the Inspector UI
+
+The Inspector UI is provided as a separate command-line tool that serves the UI on port 4004. Once your app is running (and using the middleware), you can start the Inspector UI in another terminal:
+
+If you installed the package locally:
+ 
+```bash
+ npx express-request-inspector
+```
+
+Or, if installed globally:
+ 
+```bash
+ express-request-inspector
+```
+
+or as package.json script
+
+```bash
+"scripts": {
+ "inspector": "express-request-inspector"
+}
+```
+
+Then open your browser to http://localhost:4004 to view the inspector interface.

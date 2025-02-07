@@ -4,14 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <title>Express Request/Response Inspector</title>
-    <!-- Use the Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
 </head>
 <body class="bg-gray-100">
 <div class="flex h-screen">
     <!-- Left Panel: List of Requests -->
     <div class="w-1/3 border-r border-gray-300 overflow-y-auto" id="requestList">
-        <div class="p-4 font-bold text-xl">Requests</div>
+        <div class="p-4 flex justify-between items-center">
+            <span class="font-bold text-xl">Requests</span>
+            <button class="px-3 py-1 bg-red-500 text-white rounded text-xs" onclick="clearRequests()">Clear All</button>
+        </div>
+
+        <!-- Table Header -->
+        <div class="flex items-center bg-gray-200 p-2 border-b border-gray-300 text-sm font-bold">
+            <div class="w-16 text-center">Status</div>
+            <div class="w-20 text-center">Method</div>
+            <div class="flex-grow text-left">URL</div>
+            <div class="w-20 text-center">Duration</div>
+            <div class="w-10"></div>
+        </div>
+
         <ul id="requests" class="divide-y divide-gray-200"></ul>
     </div>
 
@@ -24,77 +37,94 @@
                 <div class="flex items-center space-x-2 font-mono text-lg">
                     <span id="reqMethod" class="font-bold"></span>
                     <span id="reqEndpoint" class="text-blue-600"></span>
-                    <span id="reqStatus" class="text-green-600"></span>
+                    <span id="reqStatus" class="inline-flex px-3 py-1 text-xs font-semibold rounded-full"></span>
                 </div>
                 <div class="text-gray-600" id="reqFullUrl"></div>
-                <div class="text-gray-500" id="reqTimestamp"></div>
+                <div class="text-gray-500 text-xs" id="reqTimestamp"></div>
             </div>
         </div>
 
         <!-- Tabs for Request and Response -->
-        <div class="mb-4 flex space-x-2">
-            <button id="tabRequest" class="px-4 py-2 bg-blue-500 text-white rounded-t" onclick="showTab('request')">Request</button>
-            <button id="tabResponse" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t" onclick="showTab('response')">Response</button>
+        <div class="flex space-x-2">
+            <button id="tabRequest" class="px-4 py-2 bg-blue-600 text-white rounded-t"
+                    onclick="showTab('request')">Request
+            </button>
+            <button id="tabResponse" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t"
+                    onclick="showTab('response')">Response
+            </button>
         </div>
 
         <!-- Request Tab -->
         <div id="requestContent" class="p-4 bg-white rounded-b shadow">
+            <!-- Query Parameters Section -->
             <div class="mb-4">
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('queryParams')">Query Parameters</button>
-                <div id="queryParams" class="p-2 hidden">
+                <button id="btnQueryParams" class="w-full p-2 text-left font-bold bg-gray-200"
+                        onclick="toggleSection('queryParams')">Query Parameters
+                </button>
+                <div id="queryParams" class="p-0 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border p-2">Key</th>
-                                <th class="border p-2">Value</th>
-                            </tr>
+                        <tr class="bg-gray-100">
+                            <th class="border px-2 py-1 w-[25%] text-left">Key</th>
+                            <th class="border px-2 py-1 text-left">Value</th>
+                        </tr>
                         </thead>
                         <tbody id="queryParamsContent"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Request Headers Section -->
             <div class="mb-4">
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('requestHeaders')">Headers</button>
-                <div id="requestHeaders" class="p-2 hidden">
+                <button id="btnRequestHeaders" class="w-full p-2 text-left font-bold bg-gray-200"
+                        onclick="toggleSection('requestHeaders')">Headers
+                </button>
+                <div id="requestHeaders" class="p-0 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border p-2">Header</th>
-                                <th class="border p-2">Value</th>
-                            </tr>
+                        <tr class="bg-gray-100">
+                            <th class="border px-2 py-1 w-[25%] text-left">Header</th>
+                            <th class="border px-2 py-1 text-left">Value</th>
+                        </tr>
                         </thead>
                         <tbody id="requestHeadersContent"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Request Body Section -->
             <div>
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('requestBody')">Request Body</button>
-                <pre id="requestBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>
+                <button id="btnRequestBody" class="w-full p-2 text-left font-bold bg-gray-200">Request Body</button>
+                <!--                <pre id="requestBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>-->
+                <div id="editorContainerRequest" class="bg-white rounded-b shadow p-0 h-96"></div>
             </div>
         </div>
 
         <!-- Response Tab -->
         <div id="responseContent" class="p-4 bg-white rounded-b shadow hidden">
+            <!-- Response Headers Section -->
             <div class="mb-4">
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('responseHeaders')">Headers</button>
-                <div id="responseHeaders" class="p-2 hidden">
+                <button id="btnResponseHeaders" class="w-full p-2 text-left font-bold bg-gray-200"
+                        onclick="toggleSection('responseHeaders')">Headers
+                </button>
+                <div id="responseHeaders" class="p-0 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border p-2">Header</th>
-                                <th class="border p-2">Value</th>
-                            </tr>
+                        <tr class="bg-gray-100">
+                            <th class="border px-2 py-1 w-[25%] text-left">Header</th>
+                            <th class="border px-2 py-1 text-left">Value</th>
+                        </tr>
                         </thead>
                         <tbody id="responseHeadersContent"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Response Body Section -->
             <div>
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('responseBody')">Response Body</button>
-                <pre id="responseBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>
+                <button id="btnResponseBody" class="w-full p-2 text-left font-bold bg-gray-200">Response Body</button>
+                <!--                <pre id="responseBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>-->
+                <div id="editorContainerResponse" class="bg-white rounded-b shadow p-0 h-96"></div>
             </div>
         </div>
     </div>
@@ -106,17 +136,17 @@
     const maxRetries = 10;
     const reconnectInterval = 5000; // 5 seconds
     const requestsList = document.getElementById('requests');
-    const detailText = document.getElementById('detailText');
-    let allRequests = [];
     let selectedRequest = null;
+    let selectedLi = null;
     let currentTab = 'request';
+    let editor;
 
+    // Connect to WebSocket for incoming requests.
     function connectWebSocket() {
         if (retryCount >= maxRetries) {
             console.error(`Max retries (${maxRetries}) reached. Inspector WebSocket will not reconnect.`);
             return;
         }
-
         console.log(`Connecting to Inspector WebSocket (Attempt ${retryCount + 1}/${maxRetries})...`);
         ws = new WebSocket(`ws://${location.host}`);
 
@@ -124,11 +154,9 @@
             console.log("Inspector WebSocket connection opened.");
             retryCount = 0; // Reset retry count on success
         };
-
         ws.onerror = function (event) {
             console.error("Inspector WebSocket error:", event);
         };
-
         ws.onclose = function () {
             console.warn("Inspector WebSocket closed. Reconnecting in 5 seconds...");
             retryCount++;
@@ -140,19 +168,7 @@
             try {
                 let messageData = typeof event.data === 'string' ? event.data : new TextDecoder('utf-8').decode(new Uint8Array(event.data));
                 const data = JSON.parse(messageData);
-                // console.log("Received data from WS server:", data);
-                allRequests.push(data);
-                const li = document.createElement('li');
-                li.className = "p-2 cursor-pointer hover:bg-gray-200 flex justify-between";
-                li.innerHTML = `<span class="font-bold">${data.response.status || 'N/A'}</span>
-                                <span>${data.request.method || 'GET'}</span>
-                                <span>${data.endpoint || data.url}</span>
-                                <span>${data.latency || 'N/A'}ms</span>`;
-                li.onclick = function () {
-                    selectedRequest = data;
-                    renderDetail();
-                };
-                requestsList.appendChild(li);
+                addRequestToList(data);
             } catch (e) {
                 console.error("Error parsing received message:", e);
             }
@@ -162,29 +178,151 @@
     // Initial connection
     connectWebSocket();
 
+    function addRequestToList(data) {
+        const statusClass = getStatusClass(data.response.status);
+        const li = document.createElement('li');
+        li.className = "flex items-center cursor-pointer hover:bg-gray-200 ";
+
+        li.innerHTML = `
+            <div class="flex items-center p-2 selected-container w-full">
+                <div class="w-16 flex justify-center">
+                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                        ${data.response.status || 'N/A'}
+                    </span>
+                </div>
+                <div class="w-20 text-center font-medium">${data.request.method || 'GET'}</div>
+                <div class="flex-grow truncate text-left">${data.endpoint || data.url}</div>
+                <div class="w-20 text-gray-500 text-center">${data.latency || 'N/A'}ms</div>
+                <button class="w-8 h-8 flex items-center justify-center text-red-500 hover:text-red-700" onclick="removeRequest(event, this)">
+                    ✕
+                </button>
+            </div>
+        `;
+
+        li.onclick = function (event) {
+            if (!event.target.closest("button")) {
+                const selectedClass = ["bg-blue-100", "border-l-4", "border-blue-700", "py-2", "pl-1"]
+                // Remove highlight from previously selected item.
+                if (selectedLi) {
+                    selectedLi.querySelector('.selected-container').classList.remove(...selectedClass);
+                }
+                // Highlight the current item.
+                selectedLi = li;
+                li.querySelector('.selected-container').classList.add(...selectedClass);
+                selectedRequest = data;
+                renderDetail();
+            }
+        };
+
+        // Add the new request at the top of the list
+        requestsList.prepend(li);
+        // Auto-select the first item if none is selected.
+        if (!selectedRequest) {
+            li.click();
+        }
+    }
+
+    function removeRequest(event, button) {
+        event.stopPropagation();
+        button.parentElement.remove();
+    }
+
+    function clearRequests() {
+        requestsList.innerHTML = "";
+    }
+
+    function getStatusClass(status) {
+        if (status >= 200 && status < 300) return "bg-green-200 text-green-800";   // Success
+        if (status >= 300 && status < 400) return "bg-blue-200 text-blue-800";     // Redirection
+        if (status >= 400 && status < 500) return "bg-orange-600 text-orange-200"; // Client Error
+        if (status >= 500) return "bg-red-800 text-red-200";                       // Server Error
+        return "bg-gray-200 text-gray-800"; // Default for unknown status
+    }
+
     // Render the details in the right panel based on the selected tab.
     function renderDetail() {
         if (!selectedRequest) return;
 
         document.getElementById('reqMethod').textContent = selectedRequest.request.method;
         document.getElementById('reqEndpoint').textContent = selectedRequest.endpoint;
-        document.getElementById('reqStatus').textContent = `${selectedRequest.response.status} OK`;
+        const status = selectedRequest.response.status;
+        const pill = document.getElementById('reqStatus');
+        pill.textContent = `${status}`;
+        pill.className = "inline-flex px-3 py-1 text-xs font-semibold rounded-full " + getStatusClass(status);
         document.getElementById('reqFullUrl').textContent = selectedRequest.url;
-        document.getElementById('reqTimestamp').textContent = `Received on ${new Date().toISOString()} • Took ${selectedRequest.latency}ms to resolve`;
+        document.getElementById('reqTimestamp').textContent = `Received on ${selectedRequest.timestamp} • Took ${selectedRequest.latency}ms to resolve`;
 
         populateTable('queryParamsContent', selectedRequest.request.queryParams);
         populateTable('requestHeadersContent', selectedRequest.request.headers);
-        document.getElementById('requestBody').textContent = JSON.stringify(selectedRequest.request.body || {}, null, 2);
+        // document.getElementById('requestBody').textContent = JSON.stringify(selectedRequest.request.body || {}, null, 2);
 
         populateTable('responseHeadersContent', selectedRequest.response.headers);
-        document.getElementById('responseBody').textContent = JSON.stringify(JSON.parse(selectedRequest.response.payload || "{}"), null, 2);
+        // document.getElementById('responseBody').textContent = JSON.stringify(JSON.parse(selectedRequest.response.payload || "{}"), null, 2);
+
+        // Update the button text with counts.
+        const queryParamsCount = Object.keys(selectedRequest.request.queryParams || {}).length;
+        document.getElementById('btnQueryParams').textContent = `Query Parameters (${queryParamsCount})`;
+
+        const requestHeadersCount = Object.keys(selectedRequest.request.headers || {}).length;
+        document.getElementById('btnRequestHeaders').textContent = `Headers (${requestHeadersCount})`;
+
+        const responseHeadersCount = Object.keys(selectedRequest.response.headers || {}).length;
+        document.getElementById('btnResponseHeaders').textContent = `Headers (${responseHeadersCount})`;
+
+        // Check the Request Body.
+        let requestBody = selectedRequest.request.payload;
+        let requestBodyCount = 0;
+        if (requestBody && typeof requestBody === 'object') {
+            requestBodyCount = Object.keys(requestBody).length;
+        } else if (requestBody && typeof requestBody === 'string') {
+            const trimmed = requestBody.trim();
+            requestBodyCount = trimmed !== '' && trimmed !== '{}'? 1 : 0;
+        }
+        // document.getElementById('btnRequestBody').textContent = `Request Body (${requestBodyCount})`;
+        // If there’s no request body content, collapse its editor.
+        if (requestBodyCount === 0) {
+            document.getElementById('editorContainerRequest').classList.add('hidden');
+        } else {
+            document.getElementById('editorContainerRequest').classList.remove('hidden');
+        }
+
+        // Update the appropriate editor.
+        updateEditor();
+    }
+
+    function updateEditor() {
+        const content = currentTab === 'request'
+            ? selectedRequest.request.payload || '{}'
+            : selectedRequest.response.payload || '{}';
+
+        const target = currentTab === 'request' ? 'editorContainerRequest' : 'editorContainerResponse';
+
+        // Dispose the previous editor if it exists
+        if (editor) {
+            editor.dispose();
+            editor = null;
+        }
+
+        require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs'}});
+        require(["vs/editor/editor.main"], function () {
+            editor = monaco.editor.create(document.getElementById(target), {
+                value: JSON.stringify(JSON.parse(content), null, 2),
+                // value: content,
+                language: "json",
+                readOnly: true,
+                theme: "vs-light",
+                autoIndent: true,
+                minimap: {enabled: false},
+                automaticLayout: true
+            });
+        });
     }
 
     function populateTable(tableId, data) {
         const table = document.getElementById(tableId);
         table.innerHTML = "";
         Object.entries(data || {}).forEach(([key, value]) => {
-            table.innerHTML += `<tr><td class="border p-2">${key}</td><td class="border p-2">${value}</td></tr>`;
+            table.innerHTML += `<tr><td class="border px-2 py-1 font-mono text-slate-500 text-xs">${key}</td><td class="border px-2 py-1 font-mono text-xs">${value}</td></tr>`;
         });
     }
 
@@ -192,19 +330,30 @@
         document.getElementById(sectionId).classList.toggle('hidden');
     }
 
+    function expandResponseBody() {
+        document.getElementById('editorContainerResponse').classList.remove('hidden');
+    }
+
     function showTab(tab) {
         document.getElementById('requestContent').classList.toggle('hidden', tab !== 'request');
         document.getElementById('responseContent').classList.toggle('hidden', tab !== 'response');
 
-        document.getElementById('tabRequest').classList.toggle('bg-blue-500', tab === 'request');
+        document.getElementById('tabRequest').classList.toggle('bg-blue-600', tab === 'request');
         document.getElementById('tabRequest').classList.toggle('text-white', tab === 'request');
         document.getElementById('tabResponse').classList.toggle('bg-gray-200', tab === 'request');
         document.getElementById('tabResponse').classList.toggle('text-gray-700', tab === 'request');
 
-        document.getElementById('tabResponse').classList.toggle('bg-blue-500', tab === 'response');
+        document.getElementById('tabResponse').classList.toggle('bg-blue-600', tab === 'response');
         document.getElementById('tabResponse').classList.toggle('text-white', tab === 'response');
         document.getElementById('tabRequest').classList.toggle('bg-gray-200', tab === 'response');
         document.getElementById('tabRequest').classList.toggle('text-gray-700', tab === 'response');
+
+        currentTab = tab;
+        if (tab === 'response') {
+            // expandResponseBody();
+        }
+
+        updateEditor();
     }
 </script>
 </body>
