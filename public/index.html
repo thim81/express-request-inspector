@@ -243,7 +243,7 @@
 
         document.getElementById('reqMethod').textContent = selectedRequest.request.method;
         document.getElementById('reqEndpoint').textContent = selectedRequest.endpoint;
-        document.getElementById('reqStatus').textContent = `${selectedRequest.response.status} OK`;
+        document.getElementById('reqStatus').textContent = `${selectedRequest.response.status}`;
         document.getElementById('reqFullUrl').textContent = selectedRequest.url;
         document.getElementById('reqTimestamp').textContent = `Received on ${selectedRequest.timestamp} • Took ${selectedRequest.latency}ms to resolve`;
 
@@ -265,14 +265,16 @@
         document.getElementById('btnResponseHeaders').textContent = `Headers (${responseHeadersCount})`;
 
         // Check the Request Body.
-        let requestBody = selectedRequest.request.body;
+        let requestBody = selectedRequest.request.payload;
+        console.log('requestBody', requestBody);
         let requestBodyCount = 0;
         if (requestBody && typeof requestBody === 'object') {
             requestBodyCount = Object.keys(requestBody).length;
         } else if (requestBody && typeof requestBody === 'string') {
-            requestBodyCount = requestBody.trim() !== '' ? 1 : 0;
+            const trimmed = requestBody.trim()
+            requestBodyCount = trimmed !== '' && trimmed !== '{}'? 1 : 0;
         }
-        document.getElementById('btnRequestBody').textContent = `Request Body (${requestBodyCount})`;
+        // document.getElementById('btnRequestBody').textContent = `Request Body (${requestBodyCount})`;
         // If there’s no request body content, collapse its editor.
         if (requestBodyCount === 0) {
             document.getElementById('editorContainerRequest').classList.add('hidden');
@@ -286,7 +288,7 @@
 
     function updateEditor() {
         const content = currentTab === 'request'
-            ? selectedRequest.request.body || '{}'
+            ? selectedRequest.request.payload || '{}'
             : selectedRequest.response.payload || '{}';
 
         const target = currentTab === 'request' ? 'editorContainerRequest' : 'editorContainerResponse';
