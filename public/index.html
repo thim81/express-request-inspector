@@ -46,69 +46,84 @@
 
         <!-- Tabs for Request and Response -->
         <div class="mb-4 flex space-x-2">
-            <button id="tabRequest" class="px-4 py-2 bg-blue-500 text-white rounded-t" onclick="showTab('request')">Request</button>
-            <button id="tabResponse" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t" onclick="showTab('response')">Response</button>
+            <button id="tabRequest" class="px-4 py-2 bg-blue-500 text-white rounded-t" onclick="showTab('request')">
+                Request
+            </button>
+            <button id="tabResponse" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t"
+                    onclick="showTab('response')">Response
+            </button>
         </div>
 
         <!-- Request Tab -->
         <div id="requestContent" class="p-4 bg-white rounded-b shadow">
+            <!-- Query Parameters Section -->
             <div class="mb-4">
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('queryParams')">Query Parameters</button>
+                <button id="btnQueryParams" class="w-full p-2 text-left font-bold bg-gray-200"
+                        onclick="toggleSection('queryParams')">Query Parameters
+                </button>
                 <div id="queryParams" class="p-2 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border p-2">Key</th>
-                                <th class="border p-2">Value</th>
-                            </tr>
+                        <tr class="bg-gray-100">
+                            <th class="border p-2">Key</th>
+                            <th class="border p-2">Value</th>
+                        </tr>
                         </thead>
                         <tbody id="queryParamsContent"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Request Headers Section -->
             <div class="mb-4">
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('requestHeaders')">Headers</button>
+                <button id="btnRequestHeaders" class="w-full p-2 text-left font-bold bg-gray-200"
+                        onclick="toggleSection('requestHeaders')">Headers
+                </button>
                 <div id="requestHeaders" class="p-2 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border p-2">Header</th>
-                                <th class="border p-2">Value</th>
-                            </tr>
+                        <tr class="bg-gray-100">
+                            <th class="border p-2">Header</th>
+                            <th class="border p-2">Value</th>
+                        </tr>
                         </thead>
                         <tbody id="requestHeadersContent"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Request Body Section -->
             <div>
-                <button class="w-full p-2 text-left font-bold bg-gray-200">Request Body</button>
-<!--                <pre id="requestBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>-->
+                <button id="btnRequestBody" class="w-full p-2 text-left font-bold bg-gray-200">Request Body</button>
+                <!--                <pre id="requestBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>-->
                 <div id="editorContainerRequest" class="bg-white rounded-b shadow p-0 h-96"></div>
             </div>
         </div>
 
         <!-- Response Tab -->
         <div id="responseContent" class="p-4 bg-white rounded-b shadow hidden">
+            <!-- Response Headers Section -->
             <div class="mb-4">
-                <button class="w-full p-2 text-left font-bold bg-gray-200" onclick="toggleSection('responseHeaders')">Headers</button>
+                <button id="btnResponseHeaders" class="w-full p-2 text-left font-bold bg-gray-200"
+                        onclick="toggleSection('responseHeaders')">Headers
+                </button>
                 <div id="responseHeaders" class="p-2 hidden">
                     <table class="w-full border-collapse border border-gray-300">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border p-2">Header</th>
-                                <th class="border p-2">Value</th>
-                            </tr>
+                        <tr class="bg-gray-100">
+                            <th class="border p-2">Header</th>
+                            <th class="border p-2">Value</th>
+                        </tr>
                         </thead>
                         <tbody id="responseHeadersContent"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Response Body Section -->
             <div>
-                <button class="w-full p-2 text-left font-bold bg-gray-200">Response Body</button>
-<!--                <pre id="responseBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>-->
+                <button id="btnResponseBody" class="w-full p-2 text-left font-bold bg-gray-200">Response Body</button>
+                <!--                <pre id="responseBody" class="p-2 bg-gray-50 hidden overflow-auto"></pre>-->
                 <div id="editorContainerResponse" class="bg-white rounded-b shadow p-0 h-96"></div>
             </div>
         </div>
@@ -122,17 +137,17 @@
     const reconnectInterval = 5000; // 5 seconds
     const requestsList = document.getElementById('requests');
     const detailText = document.getElementById('detailText');
-    let allRequests = [];
     let selectedRequest = null;
+    let selectedLi = null;
     let currentTab = 'request';
     let editor;
 
+    // Connect to WebSocket for incoming requests.
     function connectWebSocket() {
         if (retryCount >= maxRetries) {
             console.error(`Max retries (${maxRetries}) reached. Inspector WebSocket will not reconnect.`);
             return;
         }
-
         console.log(`Connecting to Inspector WebSocket (Attempt ${retryCount + 1}/${maxRetries})...`);
         ws = new WebSocket(`ws://${location.host}`);
 
@@ -140,11 +155,9 @@
             console.log("Inspector WebSocket connection opened.");
             retryCount = 0; // Reset retry count on success
         };
-
         ws.onerror = function (event) {
             console.error("Inspector WebSocket error:", event);
         };
-
         ws.onclose = function () {
             console.warn("Inspector WebSocket closed. Reconnecting in 5 seconds...");
             retryCount++;
@@ -187,6 +200,13 @@
 
         li.onclick = function (event) {
             if (!event.target.closest("button")) {
+                // Remove highlight from previously selected item.
+                if (selectedLi) {
+                    selectedLi.classList.remove("bg-blue-100");
+                }
+                // Highlight the current item.
+                selectedLi = li;
+                li.classList.add("bg-blue-100");
                 selectedRequest = data;
                 renderDetail();
             }
@@ -194,10 +214,14 @@
 
         // Add the new request at the top of the list
         requestsList.prepend(li);
+        // Auto-select the first item if none is selected.
+        if (!selectedRequest) {
+            li.click();
+        }
     }
 
     function removeRequest(event, button) {
-        event.stopPropagation(); // Prevents triggering request details
+        event.stopPropagation();
         button.parentElement.remove();
     }
 
@@ -230,10 +254,33 @@
         populateTable('responseHeadersContent', selectedRequest.response.headers);
         // document.getElementById('responseBody').textContent = JSON.stringify(JSON.parse(selectedRequest.response.payload || "{}"), null, 2);
 
-        if (currentTab === 'response') {
-            // expandResponseBody()
+        // Update the button text with counts.
+        const queryParamsCount = Object.keys(selectedRequest.request.queryParams || {}).length;
+        document.getElementById('btnQueryParams').textContent = `Query Parameters (${queryParamsCount})`;
+
+        const requestHeadersCount = Object.keys(selectedRequest.request.headers || {}).length;
+        document.getElementById('btnRequestHeaders').textContent = `Headers (${requestHeadersCount})`;
+
+        const responseHeadersCount = Object.keys(selectedRequest.response.headers || {}).length;
+        document.getElementById('btnResponseHeaders').textContent = `Headers (${responseHeadersCount})`;
+
+        // Check the Request Body.
+        let requestBody = selectedRequest.request.body;
+        let requestBodyCount = 0;
+        if (requestBody && typeof requestBody === 'object') {
+            requestBodyCount = Object.keys(requestBody).length;
+        } else if (requestBody && typeof requestBody === 'string') {
+            requestBodyCount = requestBody.trim() !== '' ? 1 : 0;
+        }
+        document.getElementById('btnRequestBody').textContent = `Request Body (${requestBodyCount})`;
+        // If there’s no request body content, collapse its editor.
+        if (requestBodyCount === 0) {
+            document.getElementById('editorContainerRequest').classList.add('hidden');
+        } else {
+            document.getElementById('editorContainerRequest').classList.remove('hidden');
         }
 
+        // Update the appropriate editor.
         updateEditor();
     }
 
@@ -250,7 +297,7 @@
             editor = null;
         }
 
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs' } });
+        require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs'}});
         require(["vs/editor/editor.main"], function () {
             editor = monaco.editor.create(document.getElementById(target), {
                 value: JSON.stringify(JSON.parse(content), null, 2),
@@ -259,7 +306,7 @@
                 readOnly: true,
                 theme: "vs-light",
                 autoIndent: true,
-                minimap: { enabled: false },
+                minimap: {enabled: false},
                 automaticLayout: true
             });
         });
@@ -278,7 +325,7 @@
     }
 
     function expandResponseBody() {
-        document.getElementById('responseBody').classList.remove('hidden');
+        document.getElementById('editorContainerResponse').classList.remove('hidden');
     }
 
     function showTab(tab) {
@@ -297,7 +344,7 @@
 
         currentTab = tab;
         if (tab === 'response') {
-            // expandResponseBody()
+            // expandResponseBody();
         }
 
         updateEditor();
