@@ -2,7 +2,7 @@
 
 **Express Request/Response Inspector** is an NPM package that provides middleware for Express applications to capture and inspect every incoming request and outgoing response. It also includes a built‑in Inspector UI (accessible at [http://localhost:4004](http://localhost:4004)) where you can view details in real time—similar in spirit to Ngrok’s inspector.
 
-<img src="https://raw.githubusercontent.com/thim81/express-request-inspector/main/assets/express-inspector-screenshot.png" alt="Express Request Inspector" width="50%">
+<img src="https://raw.githubusercontent.com/thim81/express-request-inspector/main/assets/express-inspector-screenshot.png" alt="Express Request Inspector" width="80%">
 
 ## Features
 
