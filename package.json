@@ -1,0 +1,28 @@
+{
+  "name": "express-request-inspector",
+  "version": "1.0.0",
+  "description": "Express middleware to capture and inspect HTTP requests/responses with a built-in Inspector UI (port 4004).",
+  "main": "lib/inspector.js",
+  "bin": {
+    "express-inspector-ui": "./bin/app.js"
+  },
+  "scripts": {
+    "start": "node bin/app.js",
+    "demo": "node demo/demo.js"
+  },
+  "keywords": [
+    "express",
+    "middleware",
+    "inspector",
+    "request",
+    "response",
+    "websocket"
+  ],
+  "author": "Tim Haselaars",
+  "license": "MIT",
+  "dependencies": {
+    "body": "^5.1.0",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  }
+}
