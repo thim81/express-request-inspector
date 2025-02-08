@@ -1,5 +1,5 @@
 {
-  "name": "express-request-inspector",
+  "name": "request-inspector-express",
   "version": "0.1.0",
   "description": "Express middleware to capture and inspect HTTP requests/responses with a built-in Inspector UI.",
   "main": "lib/inspector.js",
@@ -15,16 +15,18 @@
     "express",
     "middleware",
     "inspector",
+    "viewer",
+    "logger",
     "request",
     "response",
-    "websocket"
+    "webhooks",
+    "SSE"
   ],
   "author": "Tim Haselaars",
   "license": "MIT",
   "dependencies": {
     "body": "^5.1.0",
-    "express": "^4.21.2",
-    "ws": "^8.18.0"
+    "express": "^4.21.2"
   },
   "files": [
     "README.md",

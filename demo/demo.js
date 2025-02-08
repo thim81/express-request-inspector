@@ -4,8 +4,8 @@ const inspector = require('../lib/inspector');
 
 const app = express();
 
-// (Optional) Define a custom Inspector Websocket
-// inspector.connectWebSocket(ws://localhost:8989);
+// (Optional)Set the broadcast URL for Inspector.
+inspector.setBroadcastUrl('http://localhost:4004/sse');
 
 // Use Inspector middleware for all routes.
 app.use((req, res, next) => {

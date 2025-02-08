@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Express Request/Response Inspector</title>
+    <title>Request Inspector</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
 </head>
@@ -131,52 +131,32 @@
 </div>
 
 <script>
-    let ws;
-    let retryCount = 0;
-    const maxRetries = 10;
-    const reconnectInterval = 5000; // 5 seconds
+    // Subscribe to SSE Inspector.
+    const eventSource = new EventSource('http://localhost:4004/sse');
+
+    eventSource.onopen = function (e) {
+        console.log("Inspector SSE connection opened.");
+    };
+
+    eventSource.onerror = function (e) {
+        console.error("Inspector SSE connection error:", e);
+    };
+
+    eventSource.onmessage = function (e) {
+        try {
+            const data = JSON.parse(e.data);
+            addRequestToList(data);
+        } catch (err) {
+            console.error("Error parsing SSE message:", err);
+        }
+    };
+
+    // Inspector UI
     const requestsList = document.getElementById('requests');
     let selectedRequest = null;
     let selectedLi = null;
     let currentTab = 'request';
     let editor;
-
-    // Connect to WebSocket for incoming requests.
-    function connectWebSocket() {
-        if (retryCount >= maxRetries) {
-            console.error(`Max retries (${maxRetries}) reached. Inspector WebSocket will not reconnect.`);
-            return;
-        }
-        console.log(`Connecting to Inspector WebSocket (Attempt ${retryCount + 1}/${maxRetries})...`);
-        ws = new WebSocket(`ws://${location.host}`);
-
-        ws.onopen = function () {
-            console.log("Inspector WebSocket connection opened.");
-            retryCount = 0; // Reset retry count on success
-        };
-        ws.onerror = function (event) {
-            console.error("Inspector WebSocket error:", event);
-        };
-        ws.onclose = function () {
-            console.warn("Inspector WebSocket closed. Reconnecting in 5 seconds...");
-            retryCount++;
-            setTimeout(connectWebSocket, reconnectInterval);
-        };
-
-        // When a new message arrives, log it and add it to the list.
-        ws.onmessage = function (event) {
-            try {
-                let messageData = typeof event.data === 'string' ? event.data : new TextDecoder('utf-8').decode(new Uint8Array(event.data));
-                const data = JSON.parse(messageData);
-                addRequestToList(data);
-            } catch (e) {
-                console.error("Error parsing received message:", e);
-            }
-        };
-    }
-
-    // Initial connection
-    connectWebSocket();
 
     function addRequestToList(data) {
         const statusClass = getStatusClass(data.response.status);
